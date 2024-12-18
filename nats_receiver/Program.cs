@@ -1,8 +1,5 @@
-﻿using NATS.Client.Core;
-using NATS.Client.JetStream;
-using NATS.Client.JetStream.Models;
+﻿using NATS.Client.JetStream.Models;
 using NATS.Net;
-using System.Threading;
 
 await using var nc = new NatsClient();
 var js = nc.CreateJetStreamContext();
@@ -15,6 +12,7 @@ var durableConfig = new ConsumerConfig
 
 using var cts = new CancellationTokenSource();
 
+//Give some time for Producer side initialize the stream
 Thread.Sleep(2000);
 
 var consumer = await js.CreateOrUpdateConsumerAsync(stream: "STREAM_DEMO", durableConfig);
@@ -30,7 +28,7 @@ var s1 = Task.Run(async () =>
     }
 });
 
-//option 1: normal pubsub
+//option 2: normal pubsub
 var s2 = Task.Run(async () =>
 {
     await foreach (var msg in nc.SubscribeAsync<string>(subject: "nats.*.wc", cancellationToken: cts.Token))
@@ -39,6 +37,7 @@ var s2 = Task.Run(async () =>
     }
 });
 
+//option 3
 var s3 = Task.Run(async () =>
 {
     await foreach (var msg in nc.SubscribeAsync<string>(subject: "nats.demo.queuegroups", queueGroup: "load-balancing-queue"))
@@ -47,12 +46,15 @@ var s3 = Task.Run(async () =>
     }
 });
 
+//option 4
 var s4 = Task.Run(async () =>
 {
-    await foreach (var msg in nc.SubscribeAsync<string>(subject: "nats.demo.requestresponse", queueGroup: "request-response-queue"))
+    await foreach (var msg in nc.SubscribeAsync<string>(subject: "nats.demo.requestresponse"))
     {
-        Console.WriteLine($"RR Received: {msg.Data}");
+        var currentTime = DateTime.Now.ToString("T");
+        Console.WriteLine($"Received({currentTime}): {msg.Data}");
         var replyMessage = $"Reply {msg.Data}";
+        Thread.Sleep(1000);
         await msg.ReplyAsync(replyMessage);
     }
 });

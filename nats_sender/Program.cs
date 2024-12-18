@@ -2,9 +2,7 @@
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
 using NATS.Net;
-using System.IO;
 using System.Text;
-using System.Text.Json;
 
 await using var nc = new NatsClient();
 
@@ -43,8 +41,7 @@ while(true)
             Console.WriteLine("Pub/Sub demo");
             Console.WriteLine("============");
 
-            byte[] d1 = Encoding.UTF8.GetBytes("Message From Producer");
-            await nc.PublishAsync("nats.demo.pubsub", d1);
+            await nc.PublishAsync("nats.demo.pubsub", "Message From Producer");
             break;
         case '2':
             Console.Clear();
@@ -65,9 +62,7 @@ while(true)
 
                 Console.WriteLine($"Sending: {message}");
 
-                byte[] d2 = Encoding.UTF8.GetBytes(message);
-
-                await nc.PublishAsync("nats.demo.queuegroups", d2);
+                await nc.PublishAsync("nats.demo.queuegroups", message);
 
                 Thread.Sleep(100);
             }
@@ -81,19 +76,22 @@ while(true)
             {
                 string message = $"Message {i}";
 
-                NatsMsg<string> reply = await nc.RequestAsync<string,string>("nats.demo.requestresponse", message);
+                NatsMsg<string> reply = await nc.RequestAsync<string,string>("nats.demo.requestresponse", message,replyOpts:new NatsSubOpts
+                {
+                    Timeout=TimeSpan.FromSeconds(500)
+                });
 
                 var responseMsg = reply.Data;
+                var currentTime = DateTime.Now.ToString("T");
 
-                Console.WriteLine($"Response: {responseMsg}");
-
+                Console.WriteLine($"Response({currentTime}): {responseMsg}");
                 Thread.Sleep(100);
             }
             break;
         case '5':
             for (int i = 1; i <= 25; i++)
             {
-                string message = $"[{DateTime.Now.ToString("hh:mm:ss:fffffff")}] Message {i}";
+                string message = $"[{DateTime.Now.ToString("T")}] Message {i}";
                 Console.WriteLine($"Sending {message}");
                 string subject = stream_subject + $".DATA.{Guid.NewGuid().ToString()}";
                 var ack  =await js.PublishAsync(subject, message);
