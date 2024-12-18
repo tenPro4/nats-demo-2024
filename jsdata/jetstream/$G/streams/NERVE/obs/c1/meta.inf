@@ -1,0 +1,1 @@
+{"Created":"2024-12-18T08:56:00.8784065Z","Name":"c1","durable_name":"c1","name":"c1","deliver_policy":"all","ack_policy":"explicit","ack_wait":30000000000,"max_deliver":-1,"filter_subject":"NERVE.DATA.\u003e","replay_policy":"instant","max_waiting":512,"max_ack_pending":1000,"num_replicas":0}

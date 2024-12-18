@@ -1,0 +1,1 @@
+{"Created":"2024-12-18T13:36:31.2132481Z","Name":"durable_processor","durable_name":"durable_processor","name":"durable_processor","deliver_policy":"all","ack_policy":"explicit","ack_wait":30000000000,"max_deliver":-1,"replay_policy":"instant","max_waiting":512,"max_ack_pending":1000,"num_replicas":0}
